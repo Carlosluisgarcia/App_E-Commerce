@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.rememberNavController
+import com.example.app_e_commercev10.ui.navegation.NavGraph
 import com.example.app_e_commercev10.ui.screens.auth.LoginScreenPlaceholder
 import com.example.app_e_commercev10.ui.screens.splash.SplashScreenPlaceholder
 import com.example.app_e_commercev10.ui.theme.LosLuisTheme
@@ -25,17 +27,19 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    //TestScreen()
-                    //SplashScreenPlaceholder()
-                    LoginScreenPlaceholder(
+                    // Crear el NavController
+                    val navController = rememberNavController()
 
-                    )
+                    // Iniciar el sistema de navegación
+                    NavGraph(navController = navController)
                 }
             }
         }
     }
 }
 
+
+/*
 @Composable
 fun TestScreen() {
     Column(
@@ -95,13 +99,13 @@ fun TestScreen() {
             }
         }
     }
-}
+}*/
 
 @Preview(showBackground = true)
 @Composable
 fun TestScreenPreview() {
     LosLuisTheme {
-        TestScreen()
+       // TestScreen()
     }
 }
 

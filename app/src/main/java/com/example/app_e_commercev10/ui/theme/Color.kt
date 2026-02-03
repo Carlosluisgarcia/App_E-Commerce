@@ -18,7 +18,7 @@ val GoldDark = Color(0xFFB8941F)         // Dorado oscuro - Sombras y degradados
 // Fondos claros para máxima legibilidad en una app de e-commerce
 
 val BackgroundWhite = Color(0xFFFFFFFF)  // Fondo principal de pantallas
-val BackgroundGray = Color(0xFFF8F8F8)   // Fondo secundario para secciones alternadas
+val BackgroundGray = Color(0xFFBDB8B8)   // Fondo secundario para secciones alternadas
 val SurfaceGray = Color(0xFFFAFAFA)      // Fondo de tarjetas (cards) de productos
 
 // ============================================

@@ -1,5 +1,6 @@
 package com.example.app_e_commercev10.ui.screens.auth
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -7,26 +8,39 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.app_e_commercev10.R
+import com.losluis.ecommerce.ui.theme.GoldPrimary
+import com.losluis.ecommerce.ui.theme.TextSecondary
 
 
 @Composable
 fun LoginScreenPlaceholder(
-    //onNavigateToRegister: () -> Unit,
-    //onNavigateToHome: () -> Unit,
-    //onGuestLogin: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onNavigateToHome: () -> Unit,
+    onGuestLogin: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
+    val backgroundGradient = Brush.verticalGradient(
+        colors = listOf(
+            Color(0xFF0E0E0E),
+            Color(0xFF232222),
+            Color(0xFF090909),
+
+            )
+    )
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(brush = backgroundGradient)
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -52,8 +66,15 @@ fun LoginScreenPlaceholder(
         Text(
             modifier = Modifier,
             text = "Welcome!",
-            style = MaterialTheme.typography.displayLarge,
+            style = MaterialTheme.typography.displayLarge.copy(fontSize = 28.sp),
             color = MaterialTheme.colorScheme.onBackground,
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Experimenta la mejor de las colecciones.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary,
+            textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(32.dp))
 
@@ -62,7 +83,9 @@ fun LoginScreenPlaceholder(
             onValueChange = { email = it },
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
-            singleLine = true
+            singleLine = true,
+
+
         )
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -71,6 +94,7 @@ fun LoginScreenPlaceholder(
             onValueChange = { password = it },
             label = { Text("Contraseña") },
             modifier = Modifier.fillMaxWidth(),
+
             singleLine = true,
             visualTransformation = PasswordVisualTransformation()
         )
@@ -92,6 +116,7 @@ fun LoginScreenPlaceholder(
         OutlinedButton(
             onClick = onGuestLogin,
             modifier = Modifier.fillMaxWidth()
+
         ) {
             Text("Continuar como Invitado")
         }
@@ -101,6 +126,8 @@ fun LoginScreenPlaceholder(
         TextButton(onClick = onNavigateToRegister) {
             Text("¿No tienes cuenta? Regístrate")
         }
+
+
 
     }
 

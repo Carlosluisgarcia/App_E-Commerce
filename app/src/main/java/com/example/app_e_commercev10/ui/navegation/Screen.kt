@@ -11,4 +11,7 @@ sealed class Screen(val route: String){
     // Pantalla principal o home
     object Home : Screen ("home")
 
+    // Pantalla de aggProductos
+    object AddProduct : Screen("add_product")
+
 }

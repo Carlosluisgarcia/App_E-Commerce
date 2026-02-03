@@ -5,9 +5,13 @@ import androidx.navigation.NavGraph
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.app_e_commercev10.ui.screens.auth.LoginScreenPlaceholder
+import com.example.app_e_commercev10.ui.screens.auth.RegisterScreenPlaceholder
+import com.example.app_e_commercev10.ui.screens.home.HomeScreenPlaceholder
+import com.example.app_e_commercev10.ui.screens.product.AddProductScreen
+import com.example.app_e_commercev10.ui.screens.splash.SplashScreenPlaceholder
 
 // Grafo de navegacion !
-/*
 @Composable
 fun NavGraph(
     navController: NavHostController,
@@ -69,22 +73,14 @@ fun NavGraph(
         }
 
         //Pantalla de registro (Ruta : Register)
-        composable(route = Screen.Register.route){
+        composable(route = Screen.Register.route) {
             RegisterScreenPlaceholder(
-                onNavigateToLogin ={
-                    // volver al login
-                    navController.popBackStack() // solo retrocede de a la anterior (Login )
-                },
-
-                onNavigateToHome={
-                    // ir a home despues de un buen registro
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route){
-                            inclusive=true
-                        }
-                    }
-                }
-
+                onNavegateToLogin = {navController.popBackStack()},
+                onNavegateToHome = {navController.navigate(Screen.Home.route) {
+                       popUpTo(Screen.Login.route) {
+                            inclusive = true
+                       }
+                   }}
             )
         }
 
@@ -100,6 +96,18 @@ fun NavGraph(
                             inclusive=true
                         }
                     }
+                },
+                onNavigateToAddProduct = {
+                    navController.navigate(Screen.AddProduct.route)
+                }
+            )
+        }
+
+        //Pantalla de Add Productos (Ruta : AddProduct)
+        composable(route = Screen.AddProduct.route) {
+            AddProductScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -107,4 +115,4 @@ fun NavGraph(
 
 
     }
-}*/
+}

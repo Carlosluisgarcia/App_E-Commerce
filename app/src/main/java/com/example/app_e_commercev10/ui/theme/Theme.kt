@@ -77,7 +77,7 @@ private val DarkColorScheme = darkColorScheme(
     onError = TextOnGold,
 
     outline = Color(0xFF4D4D4D),
-    outlineVariant = Color(0xFF606060)
+    outlineVariant = Color(0xFFDCDADA)
 )
 
 // ============================================
