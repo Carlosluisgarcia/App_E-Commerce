@@ -12,73 +12,33 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-/**
- * ═══════════════════════════════════════════════════════════════
- * 🗄️ DATABASE CENTRAL - LOS LUIS E-COMMERCE
- * ═══════════════════════════════════════════════════════════════
- *
- * Esta clase es el CORAZÓN de Room Database.
- * Define la estructura completa de la base de datos local.
- */
+
 @Database(
-    entities = [Product::class, User::class],  // 👈 Tablas que tendrá la BD
-    version = 1,  // 👈 Versión inicial de la BD
-    exportSchema = false  // 👈 No exportar esquema JSON (útil para debug)
+    entities = [Product::class, User::class],
+    version = 1,  //
+    exportSchema = false  // no exportar lo de JOIN
 )
 abstract class EcommerceDatabase : RoomDatabase() {
 
-    // ═══════════════════════════════════════════════════════════
-    // 📍 DECLARACIÓN DE DAOs
-    // ═══════════════════════════════════════════════════════════
-    // Room implementará estas funciones automáticamente
+
 
     abstract fun productDAO(): ProductDAO
     abstract fun userDAO(): UserDAO
 
-    // ═══════════════════════════════════════════════════════════
-    // 🏗️ SINGLETON PATTERN (UNA SOLA INSTANCIA)
-    // ═══════════════════════════════════════════════════════════
 
     companion object {
 
-        /**
-         * @Volatile asegura que los cambios a INSTANCE sean visibles
-         * para todos los threads inmediatamente.
-         *
-         * Es crítico en aplicaciones multi-thread (como Android)
-         */
-        @Volatile
-        private var INSTANCE: EcommerceDatabase? = null
 
-        /**
-         * OBTENER LA INSTANCIA DE LA BASE DE DATOS
-         *
-         * @param context Contexto de Android (necesario para crear la BD)
-         * @return La única instancia de EcommerceDatabase
-         *
-         * ═══════════════════════════════════════════════════════
-         * 🎓 ¿POR QUÉ SINGLETON?
-         * ═══════════════════════════════════════════════════════
-         *
-         * Crear una instancia de Room es COSTOSO:
-         * - Lee archivos del disco
-         * - Inicializa SQLite
-         * - Valida esquema de tablas
-         *
-         * Si cada pantalla crea su propia instancia:
-         * ❌ Consumo excesivo de memoria
-         * ❌ Posibles inconsistencias de datos
-         * ❌ Bloqueos entre transacciones
-         *
-         * Con Singleton:
-         * ✅ Una sola instancia compartida
-         * ✅ Mejor rendimiento
-         * ✅ Datos consistentes
-         */
+        @Volatile
+        private var INSTANCE: EcommerceDatabase? = null // instancia de base de datos
+
+
+
+
         fun getDatabase(context: Context): EcommerceDatabase {
             // Si INSTANCE ya existe, devolverla inmediatamente
             return INSTANCE ?: synchronized(this) {
-                // synchronized = solo un thread puede ejecutar esto a la vez
+                // synchronized =  ejecuta esto a la vez
 
                 // Builder de Room Database
                 val instance = Room.databaseBuilder(
@@ -87,54 +47,19 @@ abstract class EcommerceDatabase : RoomDatabase() {
                     "los_luis_ecommerce.db"  // Nombre del archivo de BD
                 )
 
-                    // ═══════════════════════════════════════════════════
-                    // ⚙️ CONFIGURACIONES OPCIONALES
-                    // ═══════════════════════════════════════════════════
-
-                    /**
-                     * fallbackToDestructiveMigration()
-                     *
-                     * ⚠️ SI CAMBIAS LA VERSIÓN DE LA BD, BORRARÁ TODO
-                     *
-                     * Ejemplo:
-                     * - Versión 1: tabla users con 4 campos
-                     * - Versión 2: agregaste campo 'isAdmin'
-                     *
-                     * SIN fallback → App crashea si no defines migración
-                     * CON fallback → Borra BD antigua y crea nueva (pierdes datos)
-                     *
-                     * 💡 Para producción, debes usar migraciones reales:
-                     *    .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-                     *
-                     * Para desarrollo/aprendizaje, fallback está bien.
-                     */
                     .fallbackToDestructiveMigration()
 
-                    /**
-                     * addCallback() - EJECUTAR CÓDIGO AL CREAR/ABRIR LA BD
-                     *
-                     * Útil para:
-                     * - Insertar datos iniciales (productos de ejemplo)
-                     * - Crear usuario admin por defecto
-                     * - Logging de debug
-                     */
+
                     .addCallback(object : RoomDatabase.Callback() {
 
-                        /**
-                         * onCreate() - SE EJECUTA SOLO LA PRIMERA VEZ
-                         *
-                         * Cuando la app se instala y la BD no existe,
-                         * Room crea las tablas y luego llama a este método.
-                         */
+
                         override fun onCreate(db: SupportSQLiteDatabase) {
                             super.onCreate(db)
 
                             // Lanzar corutina en hilo de I/O (no bloquea UI)
                             CoroutineScope(Dispatchers.IO).launch {
 
-                                // ══════════════════════════════════════════
-                                // 👤 INSERTAR USUARIO DE PRUEBA
-                                // ══════════════════════════════════════════
+                                // usuario de prueva
                                 val testUser = User(
                                     id = UUID.randomUUID().toString(),
                                     name = "Carlos Test",
@@ -147,7 +72,7 @@ abstract class EcommerceDatabase : RoomDatabase() {
                                 INSTANCE?.userDAO()?.insertUser(testUser)
 
                                 // ══════════════════════════════════════════
-                                // 📦 INSERTAR PRODUCTOS DE EJEMPLO
+                                //   PRODUCTOS DE EJEMPLO
                                 // ══════════════════════════════════════════
                                 val sampleProducts = listOf(
                                     Product(
@@ -218,11 +143,7 @@ abstract class EcommerceDatabase : RoomDatabase() {
                             }
                         }
 
-                        /**
-                         * onOpen() - SE EJECUTA CADA VEZ QUE SE ABRE LA BD
-                         *
-                         * Útil para logging o validaciones.
-                         */
+                        // cada ves que se habre la base de datos
                         override fun onOpen(db: SupportSQLiteDatabase) {
                             super.onOpen(db)
                             println("📂 Base de datos abierta: ${db.path}")
