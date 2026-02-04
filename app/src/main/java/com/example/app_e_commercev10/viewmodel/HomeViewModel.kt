@@ -26,10 +26,11 @@ class HomeViewModel : ViewModel() {
         loadProducts() // cargar prudictos
     }
 
-    private fun loadProducts() {
+    // Hacer pública la función para poder recargar desde la UI
+    fun loadProducts() {
         viewModelScope.launch {
-             _isLoading.value =true
-            _errorMessage.value=null
+            _isLoading.value = true
+            _errorMessage.value = null
 
             try {
                 val listaejemplo = listOf(
@@ -40,7 +41,8 @@ class HomeViewModel : ViewModel() {
                         price = 650.00,
                         imageUrl = "",
                         category = "Electrónica",
-                        stock = 5
+                        stock = 5,
+                        isAvailabel = true
                     ),
                     Product(
                         id = "2",
@@ -49,7 +51,8 @@ class HomeViewModel : ViewModel() {
                         price = 25.00,
                         imageUrl = "",
                         category = "Accesorios",
-                        stock = 15
+                        stock = 15,
+                        isAvailabel = true
                     ),
                     Product(
                         id = "3",
@@ -58,17 +61,38 @@ class HomeViewModel : ViewModel() {
                         price = 80.00,
                         imageUrl = "",
                         category = "Accesorios",
-                        stock = 8
+                        stock = 8,
+                        isAvailabel = true
+                    ),
+                    Product(
+                        id = "4",
+                        name = "Monitor Samsung 24\"",
+                        description = "Monitor Full HD",
+                        price = 180.00,
+                        imageUrl = "",
+                        category = "Electrónica",
+                        stock = 3,
+                        isAvailabel = true
+                    ),
+                    Product(
+                        id = "5",
+                        name = "Audífonos Sony",
+                        description = "Audífonos Bluetooth",
+                        price = 45.00,
+                        imageUrl = "",
+                        category = "Accesorios",
+                        stock = 12,
+                        isAvailabel = true
                     )
                 )
 
                 _products.value = listaejemplo
-            } catch (e: Exception){
-                _errorMessage.value = "Error al cargar los datos del producto : ${e.message}"
+
+            } catch (e: Exception) {
+                _errorMessage.value = "Error al cargar los datos del producto: ${e.message}"
             } finally {
                 _isLoading.value = false
             }
-
         }
     }
 }
