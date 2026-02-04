@@ -2,97 +2,141 @@ package com.example.app_e_commercev10.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.app_e_commercev10.data.ProductDAO
 import com.example.app_e_commercev10.model.Product
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 
-// maneja la logica de la pantalla principal (lo de productos y tal )
-class HomeViewModel : ViewModel() {
-    //Solo los puede modificar el viewModel
-    private val _products = MutableStateFlow<List<Product>>(emptyList())
+class HomeViewModel(
+    private val productDAO: ProductDAO  // 👈 DAO inyectado desde NavGraph
+) : ViewModel() {
+
+
+    val products: StateFlow<List<Product>> = productDAO.getAllProducts()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),  // Se mantiene activo 5s después de que nadie observe
+            initialValue = emptyList()  // Lista vacía mientras carga
+        )
+
+
     private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+
     private val _errorMessage = MutableStateFlow<String?>(null)
+    val errorMessage: StateFlow<String?> = _errorMessage.asStateFlow()
+
+    private val _categories = MutableStateFlow<List<String>>(emptyList())
+    val categories: StateFlow<List<String>> = _categories.asStateFlow()
 
 
-    //Lo que la pantalla puede leer
-    val products: StateFlow<List<Product>> = _products
-    val isLoading: StateFlow<Boolean> = _isLoading
-    val errorMessage: StateFlow<String?> = _errorMessage
+    private val _selectedCategory = MutableStateFlow<String?>(null)
+    val selectedCategory: StateFlow<String?> = _selectedCategory.asStateFlow()
+
+
+    private val _searchQuery = MutableStateFlow("")
+    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+
+
+    val filteredProducts: StateFlow<List<Product>> = combine(
+        products,
+        searchQuery,
+        selectedCategory
+    ) { productList, query, category ->
+        productList
+            .filter { product ->
+                // Filtrar por categoría
+                val matchesCategory = category == null || product.category == category
+
+                // Filtrar por búsqueda (case-insensitive)
+                val matchesSearch = query.isBlank() ||
+                        product.name.contains(query, ignoreCase = true)
+
+                matchesCategory && matchesSearch
+            }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
 
 
     init {
-        loadProducts() // cargar prudictos
+        // Cargar categorías al iniciar
+        loadCategories()
     }
 
-    // Hacer pública la función para poder recargar desde la UI
-    fun loadProducts() {
+
+    fun loadCategories() {
         viewModelScope.launch {
-            _isLoading.value = true
-            _errorMessage.value = null
-
             try {
-                val listaejemplo = listOf(
-                    Product(
-                        id = "1",
-                        name = "Laptop HP Pavilion",
-                        description = "Laptop de alto rendimiento",
-                        price = 650.00,
-                        imageUrl = "",
-                        category = "Electrónica",
-                        stock = 5,
-                        isAvailabel = true
-                    ),
-                    Product(
-                        id = "2",
-                        name = "Mouse Logitech",
-                        description = "Mouse inalámbrico",
-                        price = 25.00,
-                        imageUrl = "",
-                        category = "Accesorios",
-                        stock = 15,
-                        isAvailabel = true
-                    ),
-                    Product(
-                        id = "3",
-                        name = "Teclado Mecánico",
-                        description = "Teclado RGB",
-                        price = 80.00,
-                        imageUrl = "",
-                        category = "Accesorios",
-                        stock = 8,
-                        isAvailabel = true
-                    ),
-                    Product(
-                        id = "4",
-                        name = "Monitor Samsung 24\"",
-                        description = "Monitor Full HD",
-                        price = 180.00,
-                        imageUrl = "",
-                        category = "Electrónica",
-                        stock = 3,
-                        isAvailabel = true
-                    ),
-                    Product(
-                        id = "5",
-                        name = "Audífonos Sony",
-                        description = "Audífonos Bluetooth",
-                        price = 45.00,
-                        imageUrl = "",
-                        category = "Accesorios",
-                        stock = 12,
-                        isAvailabel = true
-                    )
-                )
+                _isLoading.value = true
+                _errorMessage.value = null
 
-                _products.value = listaejemplo
+                // Obtener categorías únicas de la BD
+                val categoriesList = productDAO.getAllCategories()
+                _categories.value = categoriesList
+
+                _isLoading.value = false
 
             } catch (e: Exception) {
-                _errorMessage.value = "Error al cargar los datos del producto: ${e.message}"
-            } finally {
                 _isLoading.value = false
+                _errorMessage.value = "Error al cargar categorías: ${e.message}"
             }
         }
     }
+
+
+    fun refreshProducts() {
+        viewModelScope.launch {
+            try {
+                _isLoading.value = true
+                _errorMessage.value = null
+
+                // El Flow ya está activo, solo reseteamos el loading
+                kotlinx.coroutines.delay(500) // Delay cosmético para UX
+
+                _isLoading.value = false
+
+            } catch (e: Exception) {
+                _isLoading.value = false
+                _errorMessage.value = "Error al recargar: ${e.message}"
+            }
+        }
+    }
+
+
+    fun deleteProduct(product: Product) {
+        viewModelScope.launch {
+            try {
+                _errorMessage.value = null
+
+                productDAO.deleteProduct(product)
+
+                // ✅ NO necesitas actualizar products manualmente
+                // El Flow lo detecta automáticamente
+
+            } catch (e: Exception) {
+                _errorMessage.value = "Error al eliminar: ${e.message}"
+            }
+        }
+    }
+
+
+    fun updateSearchQuery(query: String) {
+        _searchQuery.value = query
+    }
+
+
+    fun selectCategory(category: String?) {
+        _selectedCategory.value = category
+    }
+
+
+    fun clearError() {
+        _errorMessage.value = null
+    }
 }
+

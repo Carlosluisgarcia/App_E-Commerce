@@ -5,81 +5,199 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.app_e_commercev10.data.ProductDAO
 import com.example.app_e_commercev10.model.Product
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.UUID
 
-class AddProductViewModel : ViewModel() {
 
-    // Estado de los campos del formulario
+class AddProductViewModel(
+    private val productDAO: ProductDAO  // 👈 DAO inyectado desde NavGraph
+) : ViewModel() {
+
+
+
     var name by mutableStateOf("")
+        private set  // Solo el ViewModel puede modificarlo
+
     var description by mutableStateOf("")
+        private set
+
     var price by mutableStateOf("")
+        private set
+
     var imageUrl by mutableStateOf("")
+        private set
+
     var category by mutableStateOf("")
+        private set
+
     var stock by mutableStateOf("")
+        private set
 
-    // Estado de la interfaz
+    // ═══════════════════════════════════════════════════════════
+    // 🎨 ESTADOS DE LA UI
+    // ═══════════════════════════════════════════════════════════
+
+
     var isLoading by mutableStateOf(false)
-    var errorMessage by mutableStateOf<String?>(null)
+        private set
 
-    // Lógica para guardar el producto
+
+    var errorMessage by mutableStateOf<String?>(null)
+        private set
+
+
+
+    fun updateName(value: String) {
+        name = value
+        // Limpiar error al editar
+        if (errorMessage != null) errorMessage = null
+    }
+
+    fun updateDescription(value: String) {
+        description = value
+        if (errorMessage != null) errorMessage = null
+    }
+
+    fun updatePrice(value: String) {
+        price = value
+        if (errorMessage != null) errorMessage = null
+    }
+
+    fun updateImageUrl(value: String) {
+        imageUrl = value
+        if (errorMessage != null) errorMessage = null
+    }
+
+    fun updateCategory(value: String) {
+        category = value
+        if (errorMessage != null) errorMessage = null
+    }
+
+    fun updateStock(value: String) {
+        stock = value
+        if (errorMessage != null) errorMessage = null
+    }
+
+
     fun saveProduct(onSuccess: () -> Unit) {
-        // 1. Validaciones básicas
-        if (name.isBlank() || description.isBlank() || category.isBlank()) {
-            errorMessage = "Por favor completa los campos de texto."
+
+
+        // Validar que los campos obligatorios no estén vacíos
+        if (name.isBlank()) {
+            errorMessage = "El nombre del producto es obligatorio"
             return
         }
+
+        if (description.isBlank()) {
+            errorMessage = "La descripción es obligatoria"
+            return
+        }
+
+        if (category.isBlank()) {
+            errorMessage = "La categoría es obligatoria"
+            return
+        }
+
 
         val priceValue = price.toDoubleOrNull()
+
+        if (priceValue == null) {
+            errorMessage = "El precio debe ser un número válido (usa punto para decimales)"
+            return
+        }
+
+        if (priceValue < 0) {
+            errorMessage = "El precio no puede ser negativo"
+            return
+        }
+
+
         val stockValue = stock.toIntOrNull()
 
-        if (priceValue == null || priceValue < 0) {
-            errorMessage = "El precio debe ser un número válido."
-            return
-        }
-        if (stockValue == null || stockValue < 0) {
-            errorMessage = "El stock debe ser un número entero válido."
+        if (stockValue == null) {
+            errorMessage = "El stock debe ser un número entero válido"
             return
         }
 
-        // 2. Crear el objeto Product según tu modelo
-        // Usamos UUID para generar un ID único automáticamente
-        val newProduct = Product(
-            id = UUID.randomUUID().toString(),
-            name = name.trim(),
-            description = description.trim(),
-            price = priceValue,
-            imageUrl = imageUrl.trim(),
-            category = category.trim(),
-            stock = stockValue,
-            isAvailabel = stockValue > 0 // Lógica automática: si hay stock, está disponible
-        )
+        if (stockValue < 0) {
+            errorMessage = "El stock no puede ser negativo"
+            return
+        }
 
-        // 3. Proceso de "Exportación a Base de Datos"
+
+        // Si el usuario ingresó una URL, validar formato básico
+        if (imageUrl.isNotBlank()) {
+            val urlPattern = Regex("^(http|https)://.*")
+            if (!urlPattern.matches(imageUrl)) {
+                errorMessage = "La URL de imagen debe empezar con http:// o https://"
+                return
+            }
+        }
+
+
+        // Lanzar corutina para operación asíncrona
         viewModelScope.launch {
-            isLoading = true
-            errorMessage = null
 
             try {
-                // ============================================================
-                // TODO: AQUÍ VA LA LLAMADA A TU BASE DE DATOS (FIREBASE/ROOM)
-                // Ejemplo: firestore.collection("products").add(newProduct)
-                // ============================================================
+                // Activar estado de carga
+                isLoading = true
+                errorMessage = null
 
-                // Simulamos un retraso de red de 2 segundos
-                delay(2000)
+                // Generar ID único para el producto
+                val productId = UUID.randomUUID().toString()
 
-                println("Producto guardado exitosamente: $newProduct")
+                // Crear objeto Product con todos los datos validados
+                val newProduct = Product(
+                    id = productId,
+                    name = name.trim(),  // trim() elimina espacios al inicio/final
+                    description = description.trim(),
+                    price = priceValue,
+                    imageUrl = imageUrl.trim(),
+                    category = category.trim(),
+                    stock = stockValue,
 
+                )
+
+                // ✨ INSERTAR EN ROOM DATABASE ✨
+                productDAO.insertProduct(newProduct)
+
+                // Log de éxito (útil para debug)
+                println("✅ Producto guardado exitosamente: $newProduct")
+
+                // Desactivar loading
                 isLoading = false
-                onSuccess() // Navegar atrás si todo salió bien
+
+                // Navegar atrás (el callback cierra la pantalla)
+                onSuccess()
 
             } catch (e: Exception) {
+                // Si algo falla, capturar error y mostrar mensaje
                 isLoading = false
-                errorMessage = "Error al guardar: ${e.message}"
+                errorMessage = "Error al guardar el producto: ${e.message}"
+
+                // Log del error para debug
+                println("❌ Error al guardar producto: ${e.message}")
+                e.printStackTrace()
             }
         }
     }
+
+
+    fun clearForm() {
+        name = ""
+        description = ""
+        price = ""
+        imageUrl = ""
+        category = ""
+        stock = ""
+        errorMessage = null
+    }
+
+
+    fun clearError() {
+        errorMessage = null
+    }
 }
+

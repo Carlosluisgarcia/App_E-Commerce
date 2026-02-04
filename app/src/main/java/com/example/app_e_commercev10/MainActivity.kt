@@ -39,67 +39,7 @@ class MainActivity : ComponentActivity() {
 }
 
 
-/*
-@Composable
-fun TestScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically)
-    ) {
-        Text(
-            text = "Los Luis",
-            style = MaterialTheme.typography.displayLarge,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center
-        )
 
-        Text(
-            text = "E-Commerce",
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.secondary
-        )
-
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = { },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            ),
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text(
-                text = "Botón Principal",
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-                Text(
-                    text = "Tarjeta de Producto",
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = "Esta es una descripción de prueba",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}*/
 
 @Preview(showBackground = true)
 @Composable
@@ -108,21 +48,3 @@ fun TestScreenPreview() {
        // TestScreen()
     }
 }
-
-
-/*
-
----
-
-## ✅ **VERIFICACIÓN**
-
-Después de crear los 3 archivos, tu estructura debería verse así:
-```
-com.example.app_e_commercev10
-└── ui.theme
-├── Color.kt
-├── Type.kt
-└── Theme.kt
-└── MainActivity.kt
-
- */

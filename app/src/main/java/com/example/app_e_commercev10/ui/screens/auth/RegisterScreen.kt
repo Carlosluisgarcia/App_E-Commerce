@@ -21,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.app_e_commercev10.R
 import com.example.app_e_commercev10.ui.navegation.Screen
+import com.example.app_e_commercev10.viewmodel.RegisterViewModel
 import com.losluis.ecommerce.ui.theme.GoldDark
 import com.losluis.ecommerce.ui.theme.GoldPrimary
 import com.losluis.ecommerce.ui.theme.TextPrimary
@@ -29,13 +30,21 @@ import com.losluis.ecommerce.ui.theme.TextSecondary
 
 @Composable
 fun RegisterScreenPlaceholder(
+    viewModel: RegisterViewModel,
     onNavegateToLogin:()-> Unit,
-    onNavegateToHome: () -> Unit
+    onNavigateToHome:()-> Unit
+
 ) {
 
-    var name by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+    val name = viewModel.name
+    val email = viewModel.email
+    val password = viewModel.password
+    val confirmPassword = viewModel.confirmPassword
+    val isLoading = viewModel.isLoading
+    val errorMessage = viewModel.errorMessage
+    val isPasswordVisible = viewModel.isPasswordVisible
+
+
 
     val backgroundGradient = Brush.verticalGradient(
         colors = listOf(
@@ -88,7 +97,7 @@ fun RegisterScreenPlaceholder(
 
             OutlinedTextField(
                 value = name,
-                onValueChange = { name = it },
+                onValueChange = { viewModel.updateName(it) },
                 label = { Text("Full Name") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -111,7 +120,7 @@ fun RegisterScreenPlaceholder(
 
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { viewModel.updateEmail(it) },
                 label = { Text("Email") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -121,6 +130,8 @@ fun RegisterScreenPlaceholder(
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email  // Teclado con @
                 ),
+                enabled = !isLoading,
+                isError = errorMessage != null && email.isBlank(),
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = GoldPrimary,
                     unfocusedBorderColor = Color(0xFFCCCCCC),
@@ -133,7 +144,7 @@ fun RegisterScreenPlaceholder(
 
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { viewModel.updatePassword(it) },
                 label = { Text("Password") },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -144,6 +155,8 @@ fun RegisterScreenPlaceholder(
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Password
                 ),
+                enabled = !isLoading,
+                isError = errorMessage != null && password.isBlank(),
                 colors = OutlinedTextFieldDefaults.colors(
 
                     focusedBorderColor = GoldPrimary,
@@ -152,12 +165,55 @@ fun RegisterScreenPlaceholder(
                     unfocusedLabelColor = TextSecondary
                 )
             )
+            Spacer(modifier = Modifier.height(14.dp))
 
-            Spacer(modifier = Modifier.height(24.dp))
+
+            OutlinedTextField(
+                value = confirmPassword,
+                onValueChange = { viewModel.updateConfirmPassword(it) },  // 👈 Llamar ViewModel
+                label = { Text("Confirm Password") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                shape = RoundedCornerShape(12.dp),
+                visualTransformation =
+                    PasswordVisualTransformation()
+                ,
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Password
+                ),
+                enabled = !isLoading,
+                isError = errorMessage != null && confirmPassword.isBlank(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = GoldPrimary,
+                    unfocusedBorderColor = Color(0xFFCCCCCC),
+                    focusedLabelColor = GoldPrimary,
+                    unfocusedLabelColor = TextSecondary
+                )
+            )
+
+
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp),
+                    textAlign = TextAlign.Start
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
 
 
             Button(
-                onClick = onNavegateToHome,
+                onClick = { viewModel.register(onSuccess = onNavegateToLogin) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp),
@@ -165,13 +221,35 @@ fun RegisterScreenPlaceholder(
                     containerColor = GoldDark,
                     contentColor = Color.White
                 ),
-                shape = RoundedCornerShape(25.dp)
+                shape = RoundedCornerShape(25.dp),
+                enabled = !isLoading
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp),
+                        color = Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Sign Up",
+                        style = MaterialTheme.typography.labelLarge.copy(
+                            fontSize = 16.sp
+                        )
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
+            TextButton(
+                onClick = { viewModel.register(onSuccess = onNavegateToLogin) },
+                enabled = !isLoading
             ) {
                 Text(
-                    text = "Sign Up",
-                    style = MaterialTheme.typography.labelLarge.copy(
-                        fontSize = 16.sp
-                    )
+                    text = "¿Ya tienes cuenta? Inicia sesión",
+                    color = TextSecondary
                 )
             }
 

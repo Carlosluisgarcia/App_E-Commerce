@@ -35,6 +35,7 @@ import com.losluis.ecommerce.ui.theme.TextSecondary
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.text.font.FontWeight
 
 import com.example.app_e_commercev10.model.Product
 
@@ -43,26 +44,27 @@ import com.example.app_e_commercev10.model.Product
 
 @Composable
 fun HomeScreenPlaceholder(
+    viewModel: HomeViewModel,
     onLogout: () -> Unit,
     onNavigateToAddProduct: () -> Unit,
-    viewModel: HomeViewModel = viewModel()  // ViewModel
+
 ) {
 
     // Observar los estados del ViewModel
-    val products by viewModel.products.collectAsState()
+
+    val products by viewModel.filteredProducts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
+    val searchQuery by viewModel.searchQuery.collectAsState()  // 👈 NUEVO: Query del ViewModel
 
-    // Estado para controlar si la búsqueda está visible
+
+    //  visibilidad de búsqueda
     var isSearchVisible by remember { mutableStateOf(false) }
-
-    // Estado para el texto de búsqueda
-    var searchText by remember { mutableStateOf("") }
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(MaterialTheme.colorScheme.outlineVariant)
     ) {
 
         Column(modifier = Modifier.fillMaxSize()) {
@@ -91,8 +93,8 @@ fun HomeScreenPlaceholder(
                 )
             ) {
                 SearchBarComponent(
-                    searchText = searchText,
-                    onSearchTextChange = { searchText = it }
+                    searchText = searchQuery,  // de el viewmodel
+                    onSearchTextChange = { viewModel.updateSearchQuery(it) }  //se catualiza aka
                 )
             }
 
@@ -114,14 +116,14 @@ fun HomeScreenPlaceholder(
                     errorMessage != null -> {
                         ErrorScreen(
                             message = errorMessage ?: "Error desconocido",
-                            onRetry = { viewModel.loadProducts() }
+                            onRetry = { viewModel.refreshProducts() }
                         )
                     }
                     // Estado: Contenido exitoso
                     else -> {
                         ContentScreen(
                             products = products,
-                            searchText = searchText
+                            searchText = searchQuery
                         )
                     }
                 }
@@ -333,7 +335,7 @@ fun ContentScreen(
                 EmptyProductsMessage(searchText)
             } else {
                 // Mostrar productos reales
-                FeaturedProductsGrid(products = filteredProducts.take(5))
+                FeaturedGrid(products = filteredProducts.take(5))
             }
         }
 
@@ -350,7 +352,7 @@ fun ContentScreen(
             Spacer(modifier = Modifier.height(24.dp))
             SectionTitle(title = "Nuevos Agregados")
             Spacer(modifier = Modifier.height(12.dp))
-            AllProductsGrid(products = filteredProducts)
+            NewProductsGrid(products = products)
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -397,125 +399,14 @@ fun EmptyProductsMessage(searchText: String) {
 
 
 
-// ============================================
-// GRID DE PRODUCTOS DESTACADOS (CON PRODUCTOS REALES)
-// ============================================
-
-@Composable
-fun FeaturedProductsGrid(products: List<Product>) {
-    Row(modifier = Modifier.padding(horizontal = 20.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(140.dp)
-        ) {
-            LazyHorizontalGrid(
-                rows = GridCells.Fixed(1),
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                items(products.size) { index ->
-                    ProductCardWithData(product = products[index])
-                }
-            }
-        }
-    }
-}
 
 
 
-// ============================================
-// GRID DE TODOS LOS PRODUCTOS
-// ============================================
-
-@Composable
-fun AllProductsGrid(products: List<Product>) {
-    Row(modifier = Modifier.padding(horizontal = 20.dp)) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(260.dp)
-        ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                items(products.size) { index ->
-                    ProductCardWithData(product = products[index])
-                }
-            }
-        }
-    }
-}
 
 
 
-// ============================================
-// TARJETA DE PRODUCTO CON DATOS REALES
-// ============================================
 
-@Composable
-fun ProductCardWithData(product: Product) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .width(120.dp)
-            .height(120.dp),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = BackgroundGray
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            // Imagen placeholder
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(60.dp)
-                    .background(
-                        color = Color(0xFFE8E8E8),
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Home,
-                    contentDescription = "Producto",
-                    tint = GoldPrimary,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
 
-            // Nombre del producto
-            Text(
-                text = product.name,
-                style = MaterialTheme.typography.bodySmall,
-                color = TextPrimary,
-                maxLines = 1
-            )
-
-            // Precio
-            Text(
-                text = "$${product.price}",
-                style = MaterialTheme.typography.labelSmall.copy(
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
-                ),
-                color = MaterialTheme.colorScheme.surfaceVariant
-            )
-        }
-    }
-}
 
 @Composable
 fun SectionTitle(title: String) {
@@ -531,28 +422,40 @@ fun SectionTitle(title: String) {
 }
 
 @Composable
-fun FeaturedGrid() {
-    val featuredProducts = listOf(
-        "Producto 1", "Producto 2",
-        "Producto 3", "Producto 4","Producto 5"
-    )
-
+fun FeaturedGrid(products: List<Product>) {
     Row(modifier = Modifier.padding(horizontal = 20.dp)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(140.dp)
-
         ) {
-            LazyHorizontalGrid(
-                rows = GridCells.Fixed(1),
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                items(featuredProducts.size) { index ->
-                    ProductCard(name = featuredProducts[index])
+            if (products.isEmpty()) {
+                // Si no hay productos, mostrar mensaje
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No hay productos destacados",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary
+                    )
+                }
+            } else {
+
+                LazyHorizontalGrid(
+                    rows = GridCells.Fixed(1),
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+
+                    items(
+                        count = products.size
+                    ) { index ->
+                        ProductCard(product = products[index])
+                    }
                 }
             }
         }
@@ -561,9 +464,8 @@ fun FeaturedGrid() {
 
 
 
-
 @Composable
-fun ProductCard(name: String) {
+fun ProductCard(product: Product) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -581,6 +483,7 @@ fun ProductCard(name: String) {
                 .padding(10.dp),
             verticalArrangement = Arrangement.SpaceBetween
         ) {
+            // Imagen/Icono del producto
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -591,20 +494,33 @@ fun ProductCard(name: String) {
                     ),
                 contentAlignment = Alignment.Center
             ) {
+
                 Icon(
-                    imageVector = Icons.Default.Home,
+                    imageVector = Icons.Default.ArrowDropDown,
                     contentDescription = "Imagen del producto",
                     tint = Color(0xFFAAAAAA),
                     modifier = Modifier.size(28.dp)
                 )
             }
 
-            Text(
-                text = name,
-                style = MaterialTheme.typography.bodySmall,
-                color = TextPrimary,
-                maxLines = 1
-            )
+            // Nombre y precio del producto
+            Column {
+                Text(
+                    text = product.name,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextPrimary,
+                    maxLines = 1,
+                    fontSize = 11.sp
+                )
+                Text(
+                    text = "$${product.price}",
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontWeight = FontWeight.Bold
+                    ),
+                    color = GoldPrimary,
+                    fontSize = 12.sp
+                )
+            }
         }
     }
 }
@@ -658,35 +574,47 @@ fun CategoryIcons() {
         }
     }
 }
-
 @Composable
-fun NewProductsGrid() {
-    val newProducts = listOf(
-        "Nuevo 1", "Nuevo 2",
-        "Nuevo 3", "Nuevo 4", "Nuevo 5"
-    )
-
+fun NewProductsGrid(products: List<Product>) {
     Row(modifier = Modifier.padding(horizontal = 20.dp)) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(260.dp)
         ) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                modifier = Modifier.fillMaxSize(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                contentPadding = PaddingValues(0.dp)
-            ) {
-                items(newProducts.size) { index ->
-                    ProductCard(name = newProducts[index])
+            if (products.isEmpty()) {
+                // Si no hay productos
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No hay productos nuevos",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary
+                    )
+                }
+            } else {
+                // 👇 CAMBIO: Grid con productos reales
+                LazyVerticalGrid(
+                    columns = GridCells.Fixed(2),
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    contentPadding = PaddingValues(0.dp)
+                ) {
+
+                    items(
+                        count = products.size
+                    ) { index ->
+                        ProductCard(product = products[index])
+                    }
                 }
             }
         }
     }
-
 }
+
 
 
 // ============================================
@@ -699,7 +627,6 @@ fun SearchBarComponent(
     searchText: String,
     onSearchTextChange: (String) -> Unit
 ) {
-    // Fondo con sombra sutil
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shadowElevation = 2.dp,
@@ -712,15 +639,11 @@ fun SearchBarComponent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-
-            // ========================================
-            // CAMPO DE BÚSQUEDA
-            // ========================================
             TextField(
                 value = searchText,
                 onValueChange = onSearchTextChange,
                 modifier = Modifier
-                    .weight(1f)  // Ocupa todo el espacio disponible
+                    .weight(1f)
                     .height(50.dp),
                 placeholder = {
                     Text(
@@ -753,11 +676,8 @@ fun SearchBarComponent(
                 textStyle = MaterialTheme.typography.bodyMedium
             )
 
-            // ========================================
-            // BOTÓN DE CÁMARA
-            // ========================================
             IconButton(
-                onClick = { /* Acción de escanear código */ },
+                onClick = { /* Acción de cámara */ },
                 modifier = Modifier
                     .size(50.dp)
                     .background(

@@ -16,18 +16,24 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.app_e_commercev10.R
+import com.example.app_e_commercev10.viewmodel.LoginViewModel
 import com.losluis.ecommerce.ui.theme.GoldPrimary
 import com.losluis.ecommerce.ui.theme.TextSecondary
 
 
 @Composable
 fun LoginScreenPlaceholder(
+    viewModel: LoginViewModel,
     onNavigateToRegister: () -> Unit,
     onNavigateToHome: () -> Unit,
     onGuestLogin: () -> Unit
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
+
+    val email = viewModel.email
+    val password = viewModel.password
+    val isLoading = viewModel.isLoading
+    val errorMessage = viewModel.errorMessage
+
 
     val backgroundGradient = Brush.verticalGradient(
         colors = listOf(
@@ -80,10 +86,11 @@ fun LoginScreenPlaceholder(
 
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { viewModel.updateEmail(it)},
             label = { Text("Email") },
             modifier = Modifier.fillMaxWidth(),
             singleLine = true,
+
 
 
         )
@@ -91,30 +98,57 @@ fun LoginScreenPlaceholder(
 
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { viewModel.updatePassword(it) },
             label = { Text("Contraseña") },
             modifier = Modifier.fillMaxWidth(),
 
             singleLine = true,
             visualTransformation = PasswordVisualTransformation()
         )
-        Spacer(modifier = Modifier.height(24.dp))
+        Spacer(modifier = Modifier.height(8.dp))
+
+
+        if (errorMessage != null) {
+            Text(
+                text = errorMessage,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 8.dp)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
 
 
         Button(
-            onClick = onNavigateToHome ,
+            onClick =  {viewModel.login(onSuccess = onNavigateToHome)} ,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
+            ),
+            enabled = !isLoading
         ) {
-            Text("Iniciar Sesión")
+            if (isLoading) {
+                // loading spinner
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    strokeWidth = 2.dp
+                )
+            } else {
+
+                Text("Iniciar Sesión")
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         OutlinedButton(
-            onClick = onGuestLogin,
+            onClick = {
+
+                viewModel.loginAsGuest(onSuccess = onGuestLogin)
+            },
             modifier = Modifier.fillMaxWidth()
 
         ) {

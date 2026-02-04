@@ -23,8 +23,19 @@ import com.example.app_e_commercev10.viewmodel.AddProductViewModel
 @Composable
 fun AddProductScreen(
     onNavigateBack: () -> Unit,
-    viewModel: AddProductViewModel = viewModel()
+    viewModel: AddProductViewModel,
 ) {
+
+    val name = viewModel.name
+    val description = viewModel.description
+    val price = viewModel.price
+    val stock = viewModel.stock
+    val category = viewModel.category
+    val imageUrl = viewModel.imageUrl
+    val isLoading = viewModel.isLoading
+    val errorMessage = viewModel.errorMessage
+
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -51,9 +62,11 @@ fun AddProductScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .background(Color.White)
+                .background(MaterialTheme.colorScheme.outlineVariant)
                 .verticalScroll(rememberScrollState())
                 .padding(24.dp),
+
+
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
@@ -68,9 +81,14 @@ fun AddProductScreen(
 
             OutlinedTextField(
                 value = viewModel.name,
-                onValueChange = { viewModel.name = it },
+                onValueChange = { viewModel.updateName(it)},
                 label = { Text("Nombre del Producto") },
                 modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+
+                    ),
                 singleLine = true
             )
 
@@ -78,9 +96,14 @@ fun AddProductScreen(
 
             OutlinedTextField(
                 value = viewModel.description,
-                onValueChange = { viewModel.description = it },
+                onValueChange = { viewModel.updateDescription(it)  },
                 label = { Text("Descripción") },
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth() ,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+
+                    ),
                 maxLines = 3
             )
 
@@ -93,19 +116,29 @@ fun AddProductScreen(
             ) {
                 OutlinedTextField(
                     value = viewModel.price,
-                    onValueChange = { viewModel.price = it },
+                    onValueChange = { viewModel.updatePrice(it) },
                     label = { Text("Precio") },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+
+                        ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
 
                 OutlinedTextField(
                     value = viewModel.stock,
-                    onValueChange = { viewModel.stock = it },
+                    onValueChange = { viewModel.updateStock(it)},
                     label = { Text("Stock") },
                     modifier = Modifier.weight(1f),
                     singleLine = true,
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedTextColor = Color.Black,
+                        unfocusedTextColor = Color.Black,
+
+                        ),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
             }
@@ -114,9 +147,14 @@ fun AddProductScreen(
 
             OutlinedTextField(
                 value = viewModel.category,
-                onValueChange = { viewModel.category = it },
+                onValueChange = {viewModel.updateCategory(it)},
                 label = { Text("Categoría") },
                 modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+
+                    ),
                 singleLine = true
             )
 
@@ -124,9 +162,14 @@ fun AddProductScreen(
 
             OutlinedTextField(
                 value = viewModel.imageUrl,
-                onValueChange = { viewModel.imageUrl = it },
+                onValueChange = { viewModel.updateImageUrl(it) },
                 label = { Text("URL de la Imagen") },
                 modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = Color.Black,
+                    unfocusedTextColor = Color.Black,
+
+                ),
                 singleLine = true
             )
 
@@ -153,7 +196,7 @@ fun AddProductScreen(
                 colors = ButtonDefaults.buttonColors(
                     containerColor = GoldPrimary
                 ),
-                enabled = !viewModel.isLoading
+                enabled = !isLoading
             ) {
                 if (viewModel.isLoading) {
                     CircularProgressIndicator(
