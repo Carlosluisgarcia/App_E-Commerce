@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -38,8 +39,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.text.font.FontWeight
 
 import com.example.app_e_commercev10.model.Product
-
-
+import com.example.app_e_commercev10.ui.navegation.Screen
 
 
 @Composable
@@ -47,6 +47,7 @@ fun HomeScreenPlaceholder(
     viewModel: HomeViewModel,
     onLogout: () -> Unit,
     onNavigateToAddProduct: () -> Unit,
+    onNavigateToEditProduct: (String) -> Unit
 
 ) {
 
@@ -55,11 +56,13 @@ fun HomeScreenPlaceholder(
     val products by viewModel.filteredProducts.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
     val errorMessage by viewModel.errorMessage.collectAsState()
-    val searchQuery by viewModel.searchQuery.collectAsState()  // 👈 NUEVO: Query del ViewModel
+    val searchQuery by viewModel.searchQuery.collectAsState()
 
 
     //  visibilidad de búsqueda
     var isSearchVisible by remember { mutableStateOf(false) }
+
+
 
     Box(
         modifier = Modifier
@@ -73,7 +76,10 @@ fun HomeScreenPlaceholder(
             HomeTopBar(
                 onSearchClick = {
                     isSearchVisible = !isSearchVisible
-                }
+                },
+//                onLogoutClick = {
+//                    viewModel.logout(onLogout)
+//                }
             )
 
 
@@ -123,7 +129,8 @@ fun HomeScreenPlaceholder(
                     else -> {
                         ContentScreen(
                             products = products,
-                            searchText = searchQuery
+                            searchText = searchQuery,
+                            onNavigateToEditProduct = onNavigateToEditProduct
                         )
                     }
                 }
@@ -157,7 +164,9 @@ fun HomeScreenPlaceholder(
 
 @Composable
 fun HomeTopBar(
-    onSearchClick: () -> Unit = {}
+    onSearchClick: () -> Unit = {},
+    onLogoutClick: () -> Unit = {}
+
 ) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
@@ -173,7 +182,7 @@ fun HomeTopBar(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { }) {
+            IconButton(onLogoutClick  ) {
                 Icon(
                     imageVector = Icons.Default.Notifications,
                     contentDescription = "Notificaciones",
@@ -305,7 +314,8 @@ fun ErrorScreen(
 @Composable
 fun ContentScreen(
     products: List<Product>,
-    searchText: String
+    searchText: String,
+    onNavigateToEditProduct: (String) -> Unit
 ) {
     // Filtrar productos si hay texto de búsqueda (recalcula con remember si hay cambios)
     val filteredProducts = remember(products, searchText) {
@@ -335,7 +345,8 @@ fun ContentScreen(
                 EmptyProductsMessage(searchText)
             } else {
                 // Mostrar productos reales
-                FeaturedGrid(products = filteredProducts.take(5))
+                FeaturedGrid(products = filteredProducts.take(5) ,
+                    onProductClick = onNavigateToEditProduct )
             }
         }
 
@@ -352,7 +363,8 @@ fun ContentScreen(
             Spacer(modifier = Modifier.height(24.dp))
             SectionTitle(title = "Nuevos Agregados")
             Spacer(modifier = Modifier.height(12.dp))
-            NewProductsGrid(products = products)
+            NewProductsGrid(products = products ,
+                onProductClick = onNavigateToEditProduct )
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
@@ -422,7 +434,7 @@ fun SectionTitle(title: String) {
 }
 
 @Composable
-fun FeaturedGrid(products: List<Product>) {
+fun FeaturedGrid(products: List<Product> , onProductClick: (String) -> Unit) {
     Row(modifier = Modifier.padding(horizontal = 20.dp)) {
         Box(
             modifier = Modifier
@@ -454,7 +466,13 @@ fun FeaturedGrid(products: List<Product>) {
                     items(
                         count = products.size
                     ) { index ->
-                        ProductCard(product = products[index])
+                        val product = products[index]
+
+                        ProductCard(
+                            product = product,
+                            onClick = { onProductClick(product.id) }
+                        )
+
                     }
                 }
             }
@@ -465,9 +483,12 @@ fun FeaturedGrid(products: List<Product>) {
 
 
 @Composable
-fun ProductCard(product: Product) {
+fun ProductCard(product: Product  , onClick: () -> Unit) {
     Card(
         modifier = Modifier
+            .clickable {
+                onClick()
+            }
             .fillMaxWidth()
             .width(120.dp)
             .height(120.dp),
@@ -575,7 +596,7 @@ fun CategoryIcons() {
     }
 }
 @Composable
-fun NewProductsGrid(products: List<Product>) {
+fun NewProductsGrid(products: List<Product> , onProductClick: (String) -> Unit) {
     Row(modifier = Modifier.padding(horizontal = 20.dp)) {
         Box(
             modifier = Modifier
@@ -607,7 +628,11 @@ fun NewProductsGrid(products: List<Product>) {
                     items(
                         count = products.size
                     ) { index ->
-                        ProductCard(product = products[index])
+                        val product = products[index]
+                        ProductCard(
+                            product = product,
+                            onClick = { onProductClick(product.id) }
+                        )
                     }
                 }
             }
@@ -617,9 +642,7 @@ fun NewProductsGrid(products: List<Product>) {
 
 
 
-// ============================================
-// COMPONENTE: BARRA DE BÚSQUEDA
-// ============================================
+
 // Se muestra/oculta cuando se toca el icono de búsqueda
 
 @Composable

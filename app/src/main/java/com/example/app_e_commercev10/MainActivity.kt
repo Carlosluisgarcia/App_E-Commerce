@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
 import com.example.app_e_commercev10.ui.navegation.NavGraph
 import com.example.app_e_commercev10.ui.screens.auth.LoginScreenPlaceholder
@@ -21,6 +22,10 @@ import com.example.app_e_commercev10.ui.theme.LosLuisTheme
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+
+
+
         setContent {
             LosLuisTheme {
                 Surface(

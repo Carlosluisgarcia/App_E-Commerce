@@ -12,6 +12,9 @@ sealed class Screen(val route: String){
     object Home : Screen ("home")
 
     // Pantalla de aggProductos
-    object AddProduct : Screen("add_product")
-
+    object AddProduct : Screen("add_product?productId={productId}") {
+        fun createRouteForAdd(): String = "add_product"
+        fun createRouteForEdit(productId: String): String =
+            "add_product?productId=$productId"
+    }
 }

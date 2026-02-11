@@ -35,6 +35,12 @@ class AddProductViewModel(
     var stock by mutableStateOf("")
         private set
 
+    var isEditMode by mutableStateOf(false)
+        private set
+
+    var editingProductId by mutableStateOf<String?>(null)
+        private set
+
     // ═══════════════════════════════════════════════════════════
     // 🎨 ESTADOS DE LA UI
     // ═══════════════════════════════════════════════════════════
@@ -79,6 +85,38 @@ class AddProductViewModel(
         stock = value
         if (errorMessage != null) errorMessage = null
     }
+
+
+    fun loadProduct(productId: String) {
+        viewModelScope.launch {
+            try {
+
+                val product = productDAO.getProductById(productId)
+
+                if (product != null) {
+
+                    isEditMode = true
+                    editingProductId = productId
+
+                    name = product.name
+                    description = product.description
+                    price = product.price.toString()
+                    stock = product.stock.toString()
+                    category = product.category
+                    imageUrl = product.imageUrl
+
+                    println(" Producto cargado: ${product.name}")
+                } else {
+                    errorMessage = "Producto no encontrado"
+                }
+
+            } catch (e: Exception) {
+                errorMessage = "Error al cargar producto: ${e.message}"
+                println(" Error: ${e.message}")
+            }
+        }
+    }
+
 
 
     fun saveProduct(onSuccess: () -> Unit) {
@@ -139,47 +177,50 @@ class AddProductViewModel(
 
         // Lanzar corutina para operación asíncrona
         viewModelScope.launch {
-
             try {
-                // Activar estado de carga
                 isLoading = true
                 errorMessage = null
 
-                // Generar ID único para el producto
-                val productId = UUID.randomUUID().toString()
+                if (isEditMode && editingProductId != null) {
 
-                // Crear objeto Product con todos los datos validados
-                val newProduct = Product(
-                    id = productId,
-                    name = name.trim(),  // trim() elimina espacios al inicio/final
-                    description = description.trim(),
-                    price = priceValue,
-                    imageUrl = imageUrl.trim(),
-                    category = category.trim(),
-                    stock = stockValue,
+                    val updatedProduct = Product(
+                        id = editingProductId!!,  // Mismo ID
+                        name = name.trim(),
+                        description = description.trim(),
+                        price = priceValue,
+                        imageUrl = imageUrl.trim(),
+                        category = category.trim(),
+                        stock = stockValue
+                    )
 
-                )
+                    productDAO.updateProduct(updatedProduct)
+                    println(" Producto actualizado: ${updatedProduct.name}")
 
-                // ✨ INSERTAR EN ROOM DATABASE ✨
-                productDAO.insertProduct(newProduct)
+                } else {
 
-                // Log de éxito (útil para debug)
-                println("✅ Producto guardado exitosamente: $newProduct")
+                    val productId = UUID.randomUUID().toString()
 
-                // Desactivar loading
+                    val newProduct = Product(
+                        id = productId,           // Nuevo ID
+                        name = name.trim(),
+                        description = description.trim(),
+                        price = priceValue,
+                        imageUrl = imageUrl.trim(),
+                        category = category.trim(),
+                        stock = stockValue
+                    )
+
+                    productDAO.insertProduct(newProduct)
+                    println(" Producto agregado: ${newProduct.name}")
+                }
+
                 isLoading = false
-
-                // Navegar atrás (el callback cierra la pantalla)
                 onSuccess()
 
             } catch (e: Exception) {
-                // Si algo falla, capturar error y mostrar mensaje
                 isLoading = false
-                errorMessage = "Error al guardar el producto: ${e.message}"
-
-                // Log del error para debug
-                println("❌ Error al guardar producto: ${e.message}")
-                e.printStackTrace()
+                errorMessage = "Error al guardar: ${e.message}"
+                println(" Error: ${e.message}")
             }
         }
     }

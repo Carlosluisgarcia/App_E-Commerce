@@ -34,13 +34,22 @@ fun AddProductScreen(
     val imageUrl = viewModel.imageUrl
     val isLoading = viewModel.isLoading
     val errorMessage = viewModel.errorMessage
+    val isEditMode =viewModel.isEditMode
 
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(text = "Agregar Producto", color = Color.White)
+
+                   Text(
+                       text =if(isEditMode){
+                           "Editar Producto"
+                       }else{
+                           "Agregar Productos"
+                       },
+                       color =Color.White
+                   )
                 },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
@@ -64,15 +73,19 @@ fun AddProductScreen(
                 .padding(paddingValues)
                 .background(MaterialTheme.colorScheme.outlineVariant)
                 .verticalScroll(rememberScrollState())
+                //.imePadding()
                 .padding(24.dp),
-
 
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Top
         ) {
 
             Text(
-                text = "Detalles del nuevo item",
+                text = if (isEditMode) {
+                    "Modifica los detalles del producto"
+                } else {
+                    "Detalles del nuevo item"
+                },
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(bottom = 16.dp)
@@ -204,7 +217,13 @@ fun AddProductScreen(
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Text("Guardar Producto")
+                    Text(
+                        text = if (isEditMode) {
+                            "Actualizar Producto"
+                        } else {
+                            "Guardar Producto"
+                        }
+                    )
                 }
             }
         }

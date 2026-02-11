@@ -24,6 +24,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Text
 
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
@@ -33,15 +35,26 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.app_e_commercev10.viewmodel.SplashViewModel
 import kotlinx.coroutines.delay
 
 @Composable
 fun SplashScreenPlaceholder(
-    onNavigateToLogin: ()-> Unit
+    viewModel: SplashViewModel,
+    onNavigateToLogin: ()-> Unit,
+    onNavigateToHome: ()-> Unit
 ){
+
+    val isLoggedIn by viewModel.isLoggedIn.collectAsState()
+
+
     LaunchedEffect(key1 = Unit) {
-        delay(3000)  // Esperar 4 segundos
-        onNavigateToLogin()  // Llamar a la función de navegación
+        delay(3000)  // Esperar 3 s
+        when (isLoggedIn) {
+            true  -> onNavigateToHome()   // Sesión activa → Home
+            false -> onNavigateToLogin()  // Sin sesión → Login
+            null  -> { }                  // Cargando, esperar
+        }
     }
 
     val backgroundGradient = Brush.verticalGradient(

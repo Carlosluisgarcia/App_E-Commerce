@@ -3,13 +3,15 @@ package com.example.app_e_commercev10.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.app_e_commercev10.data.ProductDAO
+import com.example.app_e_commercev10.data.SessionManager
 import com.example.app_e_commercev10.model.Product
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 
 
 class HomeViewModel(
-    private val productDAO: ProductDAO  // 👈 DAO inyectado desde NavGraph
+    private val productDAO: ProductDAO , // DAO inyectado desde NavGraph
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
 
@@ -115,9 +117,6 @@ class HomeViewModel(
 
                 productDAO.deleteProduct(product)
 
-                // ✅ NO necesitas actualizar products manualmente
-                // El Flow lo detecta automáticamente
-
             } catch (e: Exception) {
                 _errorMessage.value = "Error al eliminar: ${e.message}"
             }
@@ -138,5 +137,13 @@ class HomeViewModel(
     fun clearError() {
         _errorMessage.value = null
     }
+
+
+//    fun logout(onSuccess: () -> Unit) {
+//        viewModelScope.launch {
+//            sessionManager.clearSession()
+//            onSuccess()
+//            }
+//    }
 }
 

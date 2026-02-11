@@ -5,13 +5,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.app_e_commercev10.data.SessionManager
 import com.example.app_e_commercev10.data.UserDAO
 import com.example.app_e_commercev10.model.User
 import kotlinx.coroutines.launch
 
 
 class LoginViewModel(
-    private val userDAO: UserDAO // desde el navgraph
+    private val userDAO: UserDAO , // desde el navgraph
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
 
@@ -94,10 +96,13 @@ class LoginViewModel(
 
                     println("✅ Login exitoso: ${user.name} (${user.email})")
 
-                    // 💾 AQUÍ DEBERÍAS GUARDAR LA SESIÓN
-                    // En producción, guarda el user.id en SharedPreferences
-                    // o DataStore para mantener la sesión activa
-                    // saveUserSession(user.id)
+                    sessionManager.saveSession(
+                        userId = user.id,
+                        email  = user.email,
+                        name   = user.name
+                    )
+
+
 
                     // Navegar a Home
                     onSuccess()
@@ -144,17 +149,7 @@ class LoginViewModel(
     }
 
 
-    fun logout() {
-        authenticatedUser = null
-        email = ""
-        password = ""
-        errorMessage = null
 
-        // 💾 AQUÍ DEBERÍAS LIMPIAR LA SESIÓN
-        // clearUserSession()
-
-        println("👋 Sesión cerrada")
-    }
 
 
     fun clearError() {
